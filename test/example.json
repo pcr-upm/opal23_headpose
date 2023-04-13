@@ -1,0 +1,1 @@
+{"images": [{"id": 0, "file_name": "example.tif", "width": 334, "height": 500, "date_captured": ""}], "annotations": [{"id": "1902bd98-2443-4bed-a867-dd39e517c553", "image_id": 0, "bbox": [78.0, 97.0, 219.0, 219.0], "pose": [37.4253, 8.47593, 3.37398], "iscrowd": 0}]}
