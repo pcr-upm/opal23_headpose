@@ -56,10 +56,46 @@ class Opal23Headpose(Alignment):
         return warped_image
 
     def train(self, anns_train, anns_valid):
-        print('Training model')
+        print('Train model')
 
     def load(self, mode):
-        print('Loading model')
+        print('Load model')
+        # from keras.models import Model
+        # from keras.applications.mobilenet_v2 import MobileNetV2
+        # baseline = MobileNetV2(input_shape=(224, 224, 3), alpha=1.0, include_top=True, weights=None, input_tensor=None, pooling=None, classes=3, classifier_activation="softmax")
+        # model = Model(inputs=baseline.input, outputs=baseline.output)
+        from keras.models import Sequential
+        from keras.layers import Input, BatchNormalization, ReLU, Dense, Dropout, Activation, Flatten
+        from keras.layers.convolutional import Conv2D
+        model = Sequential()
+        model.add(Input(shape=(128, 128, 3)))
+        model.add(Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(64, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(128, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
+        model.add(BatchNormalization())
+        model.add(ReLU())
+        model.add(Dense(3))
+        model.add(Activation('softmax'))
+        model.summary(line_length=120)
 
     def process(self, ann, pred):
         for img_pred in pred.images:
@@ -72,4 +108,3 @@ class Opal23Headpose(Alignment):
                 # aux = warped_image.copy()
                 # plt.imshow(aux)
                 # plt.show()
-                print('Predict image')

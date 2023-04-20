@@ -15,16 +15,13 @@ from pathlib import Path
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
 from images_framework.src.categories import Category as Oi
-from images_framework.src.annotations import GenericGroup, GenericImage, FaceObject, GenericCategory
+from images_framework.src.annotations import GenericGroup, GenericImage, FaceObject, FaceLandmark, GenericCategory
 from images_framework.src.viewer import Viewer
 from images_framework.src.utils import load_geoimage
 from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose
-from images_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
 
 image_extensions = ('bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff')
 video_extensions = ('mp4', 'avi', 'mkv')
-sd = SSD16Detection('images_framework/detection/ssd16_detection/')
-sd.load(Modes.TEST)
 
 
 def parse_options():
@@ -65,9 +62,13 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
             pred.images[-1].add_object(copy.deepcopy(obj))
             yaw, pitch, roll = line['pose']
             obj.headpose = np.array([yaw, pitch, roll])
+            obj.landmarks = np.array([FaceLandmark(lnd['label'], lnd['pos'], lnd['visible'], lnd['confidence']) for lnd in line['landmarks']])
             obj.add_category(GenericCategory(label=Oi.FACE))
             img_ann.add_object(obj)
     else:
+        from images_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
+        sd = SSD16Detection('images_framework/detection/ssd16_detection/')
+        sd.load(Modes.TEST)
         sd.process(ann, pred)
     ann.add_image(img_ann)
     # Process frame and show results
