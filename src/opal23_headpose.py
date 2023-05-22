@@ -40,8 +40,8 @@ class Opal23Headpose(Alignment):
         super().parse_options(params)
         import argparse
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
-        parser.add_argument('--model_path', type=str, help='Pre-trained model weights path.')
-        parser.add_argument('--rotation_mode', type=str, choices=['euler', 'quaternion', 'ortho6d'], default='euler',
+        parser.add_argument('--model-path', type=str, help='Pre-trained model weights path.')
+        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', 'ortho6d'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
         parser.add_argument('--gpu', dest='gpu', default=-1, type=int,
                             help='GPU ID (negative value indicates CPU).')
