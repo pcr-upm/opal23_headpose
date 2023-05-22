@@ -27,10 +27,11 @@ LABEL maintainer="roberto.valle@upm.es"
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /home/username/miniconda.sh
 RUN chmod +x /home/username/miniconda.sh
 RUN /home/username/miniconda.sh -b -p /home/username/conda
-RUN /home/username/conda/bin/conda create --name opal23 python=3.8
+RUN /home/username/conda/bin/conda create --name opal23 python=3.10
 # Activate conda environment
 ENV PATH /home/username/conda/envs/opal23/bin:/home/username/conda/bin:$PATH
 # Make RUN commands use the new environment (source activate opal23)
 SHELL ["conda", "run", "-n", "opal23", "/bin/bash", "-c"]
 # Install dependencies
-RUN pip install opencv-python opencv-contrib-python rasterio
+RUN pip install numpy opencv-python rasterio
+RUN pip install torch==1.13.0+cu117 torchvision==0.14.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117

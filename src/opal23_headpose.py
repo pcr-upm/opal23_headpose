@@ -6,9 +6,20 @@ __email__ = 'alejandro.cobo@upm.es'
 import os
 import cv2
 import numpy as np
+import torch
+from torchvision.transforms.functional import to_tensor
+
 from images_framework.src.alignment import Alignment
+from images_framework.src.constants import Modes
+from .irn_relu import IRN
+from .task_headpose import PoseHead
+from .utils import convert_rotation
+
 os.environ['PYTHONHASHSEED'] = '0'
 np.random.seed(42)
+torch.manual_seed(42)
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
 
 
 class Opal23Headpose(Alignment):
@@ -20,18 +31,25 @@ class Opal23Headpose(Alignment):
         self.path = path
         self.model = None
         self.gpu = None
-        self.width = 224
-        self.height = 224
+        self.width = 128
+        self.height = 128
+        self.model_path = None
+        self.rotation_mode = 'euler'
 
     def parse_options(self, params):
         super().parse_options(params)
         import argparse
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
-        parser.add_argument('--gpu', dest='gpu', type=int, action='append',
+        parser.add_argument('--model_path', type=str, help='Pre-trained model weights path.')
+        parser.add_argument('--rotation_mode', type=str, choices=['euler', 'quaternion', 'ortho6d'], default='euler',
+                            help='Internal pose parameterization of the network (default: euler).')
+        parser.add_argument('--gpu', dest='gpu', default=-1, type=int,
                             help='GPU ID (negative value indicates CPU).')
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())
-        self.gpu = args.gpu
+        self.model_path = args.model_path
+        self.rotation_mode = args.rotation_mode
+        self.gpu = args.gpu if args.gpu > 0 else 'cpu'
 
     def preprocess(self, image, bbox):
         bbox_width = bbox[2]-bbox[0]
@@ -53,49 +71,38 @@ class Opal23Headpose(Alignment):
         face_translated = cv2.warpAffine(image, T, (int(round(bbox_width)), int(round(bbox_height))))
         S = np.matrix([[self.width/bbox_width, 0, 0], [0, self.height/bbox_height, 0]], dtype=float)
         warped_image = cv2.warpAffine(face_translated, S, (self.width, self.height))
-        return warped_image
+
+        # Image array (H x W x C) to tensor (C x H x W)
+        tensor_image = to_tensor(warped_image).unsqueeze(0).to(self.gpu)
+        return tensor_image
 
     def train(self, anns_train, anns_valid):
         print('Train model')
 
     def load(self, mode):
         print('Load model')
-        # from keras.models import Model
-        # from keras.applications.mobilenet_v2 import MobileNetV2
-        # baseline = MobileNetV2(input_shape=(224, 224, 3), alpha=1.0, include_top=True, weights=None, input_tensor=None, pooling=None, classes=3, classifier_activation="softmax")
-        # model = Model(inputs=baseline.input, outputs=baseline.output)
-        from keras.models import Sequential
-        from keras.layers import Input, BatchNormalization, ReLU, Dense, Dropout, Activation, Flatten
-        from keras.layers.convolutional import Conv2D
-        model = Sequential()
-        model.add(Input(shape=(128, 128, 3)))
-        model.add(Conv2D(32, kernel_size=(3, 3), strides=(1, 1), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(64, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(128, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Conv2D(256, kernel_size=(3, 3), strides=(2, 2), padding='same', use_bias=False, kernel_initializer='he_uniform'))
-        model.add(BatchNormalization())
-        model.add(ReLU())
-        model.add(Dense(3))
-        model.add(Activation('softmax'))
-        model.summary(line_length=120)
+        setting = {
+            'backbone':
+            # t, c, n, s, l
+            [[6, 1, 1, 1, -1],
+             [6, 2, 1, 2, -1],
+             [6, 4, 2, 2, -1],
+             [6, 8, 3, 2, -1],
+             [6, 8, 4, 2, -1]],
+            'encoders':
+            [[[6, 8, 1, 2, -1],
+              [6, 8, 1, 2, -1],
+              [6, 8, 1, 0, -1]]]}
+        backbone = IRN(setting, inp_shape=128, in_planes=32)
+        pose_head = PoseHead(backbone, rotation_mode=self.rotation_mode)
+        self.model = torch.nn.Sequential(backbone, pose_head)
+
+        if self.model_path is not None:
+            state_dict = torch.load(self.model_path)
+            self.model.load_state_dict(state_dict)
+
+        self.model.train(mode == Modes.TRAIN)
+        self.model.to(self.gpu)
 
     def process(self, ann, pred):
         for img_pred in pred.images:
@@ -103,8 +110,23 @@ class Opal23Headpose(Alignment):
             image = cv2.imread(img_pred.filename)
             for obj_pred in img_pred.objects:
                 # Generate prediction
-                warped_image = self.preprocess(image, obj_pred.bb)
+                tensor_image = self.preprocess(image, obj_pred.bb)
                 # from matplotlib import pyplot as plt
                 # aux = warped_image.copy()
                 # plt.imshow(aux)
                 # plt.show()
+                with torch.set_grad_enabled(self.model.training):
+                    output = self.model(tensor_image)
+                    headpose = self._pyr_to_ypr(output).detach().cpu().numpy()
+                obj_pred.headpose = headpose[0]
+
+    def _pyr_to_ypr(self, pose):
+        t_pose = torch.zeros(1, 3, dtype=torch.float32)
+        t_pose_ypr = convert_rotation(t_pose, 'matrix', use_pyr_format=False)
+        t_pose_pyr = convert_rotation(t_pose, 'matrix', use_pyr_format=True)
+        delta = torch.bmm(t_pose_pyr.transpose(1, 2), t_pose_ypr)
+
+        pose = convert_rotation(pose, 'matrix', use_pyr_format=True)
+        pose = torch.bmm(pose, delta)
+
+        return convert_rotation(pose, 'euler', use_pyr_format=False)
