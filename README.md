@@ -2,6 +2,7 @@
 
 #### Requisites
 - images_framework https://github.com/bobetocalo/images_framework
+- Pytorch (v1.13.0)
 
 #### Installation
 This repository must be located inside the following directory:
@@ -41,5 +42,5 @@ usage: Opal23Headpose [--rotation-mode {euler,quaternion,ortho6d}]
 
 * Use the --rotation-mode option to specify the internal pose parameterization of the network.
 ```
-> python images_framework/alignment/opal23_headpose/test/opal23_headpose_test.py --input-data images_framework/alignment/opal23_headpose/test/example.tif --database AFLW --save-image --gpu 0 --model-path images_framework/alignment/opal23_headpose/data/300wlp/300wlp_euler.pth --rotation-mode euler
+> python images_framework/alignment/opal23_headpose/test/opal23_headpose_test.py --input-data images_framework/alignment/opal23_headpose/test/example.tif --database 300wlp --gpu 0 --rotation-mode euler --save-image
 ```
