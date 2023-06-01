@@ -46,7 +46,7 @@ class Opal23Headpose(Alignment):
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())
         self.rotation_mode = args.rotation_mode
-        self.gpu = args.gpu if args.gpu > 0 else 'cpu'
+        self.gpu = args.gpu if args.gpu >= 0 else 'cpu'
 
     def preprocess(self, image, bbox):
         bbox_width = bbox[2]-bbox[0]
