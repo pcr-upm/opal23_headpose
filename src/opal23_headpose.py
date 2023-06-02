@@ -100,6 +100,7 @@ class Opal23Headpose(Alignment):
         self.model.to(self.gpu)
 
     def process(self, ann, pred):
+        from scipy.spatial.transform import Rotation
         for img_pred in pred.images:
             # Load image
             image = cv2.imread(img_pred.filename)
@@ -112,16 +113,17 @@ class Opal23Headpose(Alignment):
                 # plt.show()
                 with torch.set_grad_enabled(self.model.training):
                     output = self.model(tensor_image)
-                    headpose = self._pyr_to_ypr(output).detach().cpu().numpy()
-                obj_pred.headpose = headpose[0]
+                    # headpose = self._pyr_to_ypr(output).detach().cpu().numpy()
+                obj_pred.headpose = Rotation.from_euler('YZX', output[0], degrees=True).as_matrix()
+                # obj_pred.headpose = Rotation.from_euler('ZYX', headpose[0], degrees=True).as_matrix()
 
-    def _pyr_to_ypr(self, pose):
-        t_pose = torch.zeros(1, 3, dtype=torch.float32)
-        t_pose_ypr = convert_rotation(t_pose, 'matrix', use_pyr_format=False)
-        t_pose_pyr = convert_rotation(t_pose, 'matrix', use_pyr_format=True)
-        delta = torch.bmm(t_pose_pyr.transpose(1, 2), t_pose_ypr)
-
-        pose = convert_rotation(pose, 'matrix', use_pyr_format=True)
-        pose = torch.bmm(pose, delta)
-
-        return convert_rotation(pose, 'euler', use_pyr_format=False)
+    # def _pyr_to_ypr(self, pose):
+    #     t_pose = torch.zeros(1, 3, dtype=torch.float32)
+    #     t_pose_ypr = convert_rotation(t_pose, 'matrix', use_pyr_format=False)
+    #     t_pose_pyr = convert_rotation(t_pose, 'matrix', use_pyr_format=True)
+    #     delta = torch.bmm(t_pose_pyr.transpose(1, 2), t_pose_ypr)
+    #
+    #     pose = convert_rotation(pose, 'matrix', use_pyr_format=True)
+    #     pose = torch.bmm(pose, delta)
+    #
+    #     return convert_rotation(pose, 'euler', use_pyr_format=False)
