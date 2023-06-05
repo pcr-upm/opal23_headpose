@@ -8,12 +8,10 @@ import cv2
 import numpy as np
 import torch
 from torchvision.transforms.functional import to_tensor
-
 from images_framework.src.alignment import Alignment
 from images_framework.src.constants import Modes
 from .irn_relu import IRN
 from .task_headpose import PoseHead
-from .utils import convert_rotation
 
 os.environ['PYTHONHASHSEED'] = '0'
 np.random.seed(42)
@@ -68,10 +66,7 @@ class Opal23Headpose(Alignment):
         face_translated = cv2.warpAffine(image, T, (int(round(bbox_width)), int(round(bbox_height))))
         S = np.matrix([[self.width/bbox_width, 0, 0], [0, self.height/bbox_height, 0]], dtype=float)
         warped_image = cv2.warpAffine(face_translated, S, (self.width, self.height))
-
-        # Image array (H x W x C) to tensor (C x H x W)
-        tensor_image = to_tensor(warped_image).unsqueeze(0).to(self.gpu)
-        return tensor_image
+        return warped_image
 
     def train(self, anns_train, anns_valid):
         print('Train model')
@@ -106,24 +101,24 @@ class Opal23Headpose(Alignment):
             image = cv2.imread(img_pred.filename)
             for obj_pred in img_pred.objects:
                 # Generate prediction
-                tensor_image = self.preprocess(image, obj_pred.bb)
+                warped_image = self.preprocess(image, obj_pred.bb)
                 # from matplotlib import pyplot as plt
                 # aux = warped_image.copy()
                 # plt.imshow(aux)
                 # plt.show()
+                # Image array (H x W x C) to tensor (C x H x W)
+                tensor_image = to_tensor(warped_image).unsqueeze(0).to(self.gpu)
                 with torch.set_grad_enabled(self.model.training):
-                    output = self.model(tensor_image)
+                    output = self.model(tensor_image).detach().cpu().numpy()
                     # headpose = self._pyr_to_ypr(output).detach().cpu().numpy()
                 obj_pred.headpose = Rotation.from_euler('YZX', output[0], degrees=True).as_matrix()
-                # obj_pred.headpose = Rotation.from_euler('ZYX', headpose[0], degrees=True).as_matrix()
 
     # def _pyr_to_ypr(self, pose):
+    # from .utils import convert_rotation
     #     t_pose = torch.zeros(1, 3, dtype=torch.float32)
     #     t_pose_ypr = convert_rotation(t_pose, 'matrix', use_pyr_format=False)
     #     t_pose_pyr = convert_rotation(t_pose, 'matrix', use_pyr_format=True)
     #     delta = torch.bmm(t_pose_pyr.transpose(1, 2), t_pose_ypr)
-    #
     #     pose = convert_rotation(pose, 'matrix', use_pyr_format=True)
     #     pose = torch.bmm(pose, delta)
-    #
     #     return convert_rotation(pose, 'euler', use_pyr_format=False)
