@@ -3,6 +3,14 @@ import numpy as np
 
 
 def align_predictions(ann, pred, tol=0.0001):
+    """
+    Aligns predictions to remove systematic errors entangled with prediction errors in cross-dataset evaluations.
+
+    :param ann: N x 3 x 3 numpy.ndarray containing ground-truth rotation matrices.
+    :param pred: N x 3 x 3 numpy.ndarray containing predicted rotation matrices.
+    :param tol: minimum error value needed to finish the optimization.
+    :returns: N x 3 x 3 numpy.ndarray containing the aligned rotation matrices.
+    """
 
     def _average_displacement(avg_rot, ri):
         return np.mean(np.concatenate([cv2.Rodrigues(r)[0].T for r in avg_rot.T @ ri]), axis=0)
@@ -27,6 +35,13 @@ def align_predictions(ann, pred, tol=0.0001):
 
 
 def compute_ge(m1, m2):
+    """
+    Computes the geodesic error amongst two batches of rotation matrices.
+
+    :param m1: N x 3 x 3 numpy.ndarray containing the first batch of rotation matrices.
+    :param m2: N x 3 x 3 numpy.ndarray containing the second batch of rotation matrices.
+    :returns: numpy.ndarray containing N geodesic error values between m1 and m2.
+    """
     m = np.matmul(m1, m2.transpose(0, 2, 1))
 
     cos = (np.trace(m, axis1=1, axis2=2) - 1) / 2
@@ -36,6 +51,15 @@ def compute_ge(m1, m2):
 
 
 def compute_mae(anns, pred, use_pyr_format=False):
+    """
+    Computes the Mean Absolute Error (MAE) amongst two batches of Euler angles.
+
+    :param anns: N x 3 numpy.ndarray containing the first batch of Euler angles.
+    :param pred: N x 3 numpy.ndarray containing the second batch of Euler angles.
+    :param use_pyr_format: flag to indicate the order of rotation. True means pitch-yaw-roll order, False means
+                           yaw-pitch-roll order.
+    :returns: numpy.ndarray containing N MAE values between anns and pred.
+    """
     pred_wrap = _wrap_angles(pred, use_pyr_format)
 
     mae_ypr = np.abs(anns - pred)
@@ -61,6 +85,16 @@ def _wrap_angles(euler, use_pyr_format=False):
 
 
 def convert_rotation(pose, to, use_pyr_format=False):
+    """
+    Converts any pose representation to another. Currently supports Euler, quaternion, 6D and rotation matrix
+    representations.
+
+    :param pose: numpy.ndarray containing a rotation defined in Euler, quaternion, 6D or rotation matrix representation.
+    :param to: string that indicates the target representation. Can be 'euler', 'quaternion', 'ortho6d' or 'matrix'.
+    :param use_pyr_format: flag to indicate the order of rotation in Euler angles. True means pitch-yaw-roll order,
+                           False means yaw-pitch-roll order.
+    :returns: numpy.ndarray containing the converted pose array.
+    """
     pose = np.array(pose)
 
     if to == 'euler':

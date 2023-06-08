@@ -26,23 +26,20 @@ def parse_options():
     parser = argparse.ArgumentParser()
     parser.add_argument('--anns-file', '-a', dest='anns_file', required=True,
                         help='Ground truth annotations file.')
-    parser.add_argument('--data-dir', '-d', dest='data_dir', required=True,
-                        help='Images directory path.')
     args, unknown = parser.parse_known_args()
     print(parser.format_usage())
     anns_file = args.anns_file
-    data_dir = args.data_dir
-    return unknown, anns_file, data_dir
+    return unknown, anns_file
 
 
-def load_annotations(anns_file, data_dir=None):
+def load_annotations(anns_file):
     """
     Load ground truth annotations according to each database.
     """
     print('Open annotations file: ' + str(anns_file))
     if os.path.isfile(anns_file):
         pos = anns_file.rfind('/') + 1
-        # path = anns_file[:pos]
+        path = anns_file[:pos]
         file = anns_file[pos:]
         db = file[:file.find('_ann')]
         datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
@@ -58,7 +55,7 @@ def load_annotations(anns_file, data_dir=None):
                 idx = [datasets.index(subset) for subset in datasets if db in subset]
                 if len(idx) != 1:
                     raise ValueError('Database does not exist')
-                seq = Database.__subclasses__()[idx[0]]().load_filename(data_dir, db, lines[i])
+                seq = Database.__subclasses__()[idx[0]]().load_filename(path, db, lines[i])
                 if len(seq.images) == 0:
                     continue
                 anns.append(seq)
@@ -73,7 +70,7 @@ def main():
     Opal 2023 using Biwi test set.
     """
     print('OpenCV ' + cv2.__version__)
-    unknown, anns_file, data_dir = parse_options()
+    unknown, anns_file = parse_options()
 
     # Load vision components
     composite = Composite()
@@ -81,7 +78,7 @@ def main():
     sr.target_dist = 1.0
     composite.add(sr)
     composite.parse_options(unknown)
-    anns = load_annotations(anns_file, data_dir)
+    anns = load_annotations(anns_file)
     # Process frame and show results
     print('Process annotations in ' + Modes.TEST.name + ' mode ...')
     composite.load(Modes.TEST)
