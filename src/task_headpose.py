@@ -1,7 +1,5 @@
+import torch
 import torch.nn as nn
-
-# My libs
-from .utils import axis_angle_to_quaternion
 
 
 class PoseHead(nn.Module):
@@ -46,10 +44,19 @@ class PoseHead(nn.Module):
             pose = self.fc_for_pose[fc_name](pose)
 
             if self.rotation_mode == 'quaternions':
-                pose = axis_angle_to_quaternion(pose)
+                pose = self._axis_angle_to_quaternion(pose)
 
             pose = pose.reshape(pose.shape[0], -1)
             pose_out.append(pose)
 
         # Save pose output
         return pose_out[-1]
+
+    # H. Hsu et al., "QuatNet: Quaternion-Based Head Pose Estimation With Multiregression Loss"
+    def _axis_angle_to_quaternion(self, x):
+        assert x.shape[-1] == 4, f"Error: expected (batch_dim, 4) input shape but got: {x.shape}"
+        qw = torch.cos(x[:, 3])
+        qx = x[:, 0] * torch.sin(x[:, 3])
+        qy = x[:, 1] * torch.sin(x[:, 3])
+        qz = x[:, 2] * torch.sin(x[:, 3])
+        return torch.cat([qw, qx, qy, qz], dim=0)

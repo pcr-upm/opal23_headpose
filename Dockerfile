@@ -34,4 +34,4 @@ ENV PATH /home/username/conda/envs/opal23/bin:/home/username/conda/bin:$PATH
 SHELL ["conda", "run", "-n", "opal23", "/bin/bash", "-c"]
 # Install dependencies
 RUN pip install numpy opencv-python rasterio scipy
-RUN pip install torch==1.13.0+cu117 torchvision==0.14.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+RUN pip install torch==1.13.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
