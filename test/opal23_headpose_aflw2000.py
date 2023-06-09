@@ -11,7 +11,7 @@ import copy
 import argparse
 import numpy as np
 from tqdm import tqdm
-# from scipy.spatial.transform import Rotation
+from scipy.spatial.transform import Rotation
 from images_framework.src.datasets import Database
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
@@ -81,31 +81,23 @@ def main():
     # Process frame and show results
     print('Process annotations in ' + Modes.TEST.name + ' mode ...')
     composite.load(Modes.TEST)
-    ann_euler_array = []
-    pred_euler_array = []
-    ann_matrix_array = []
-    pred_matrix_array = []
+    anno_euler_array, pred_euler_array, anno_matrix_array, pred_matrix_array = [], [], [], []
     for i in tqdm(range(len(anns)), file=sys.stdout):
         pred = copy.deepcopy(anns[i])
         composite.process(anns[i], pred)
         for idx in range(len(pred.images[0].objects)):
-            ann_angle = utils.convert_rotation(anns[i].images[0].objects[idx].headpose, 'euler', use_pyr_format=True)
-            ann_rotm = utils.convert_rotation(anns[i].images[0].objects[idx].headpose, 'matrix', use_pyr_format=True)
-            # Skip images outside the range (-99, 99)
-            if np.any(np.abs(ann_angle) > 99):
-                continue
-            pred_angle = utils.convert_rotation(pred.images[0].objects[idx].headpose, 'euler', use_pyr_format=True)
-            pred_rotm = utils.convert_rotation(pred.images[0].objects[idx].headpose, 'matrix', use_pyr_format=True)
-            ann_euler_array.append(ann_angle)
-            pred_euler_array.append(pred_angle)
-            ann_matrix_array.append(ann_rotm)
-            pred_matrix_array.append(pred_rotm)
-
-    mae = utils.compute_mae(np.array(ann_euler_array), np.array(pred_euler_array), use_pyr_format=True)
-    mae = np.mean(mae, axis=0)
-    ge = utils.compute_ge(np.array(ann_matrix_array), np.array(pred_matrix_array))
+            anno_euler = utils.convert_rotation(anns[i].images[0].objects[idx].headpose, 'euler', use_pyr_format=True)
+            pred_euler = utils.convert_rotation(pred.images[0].objects[idx].headpose, 'euler', use_pyr_format=True)
+            anno_euler_array.append(utils.convert_rotation(anno_euler, 'euler', use_pyr_format=True))
+            pred_euler_array.append(utils.convert_rotation(pred_euler, 'euler', use_pyr_format=True))
+            anno_matrix_array.append(utils.convert_rotation(anno_euler, 'matrix', use_pyr_format=True))
+            pred_matrix_array.append(utils.convert_rotation(pred_euler, 'matrix', use_pyr_format=True))
+    # Compute MAE and GE metrics
+    mae = np.mean(utils.compute_mae(np.array(anno_euler_array), np.array(pred_euler_array), use_pyr_format=True), axis=0)
+    ge = np.mean(utils.compute_ge(np.array(anno_matrix_array), np.array(pred_matrix_array)))
     print('MAE (yaw, pitch, roll): ' + str(mae))
-    print('GE: ' + str(np.mean(ge)))
+    print('MAE: ' + str(np.mean(ge)))
+    print('GE: ' + str(ge))
     print('End of opal23_headpose_aflw2000')
 
 

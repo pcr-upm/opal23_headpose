@@ -12,6 +12,7 @@ import copy
 import argparse
 import numpy as np
 from pathlib import Path
+from scipy.spatial.transform import Rotation
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
 from images_framework.src.categories import FaceLandmarkPart as Lp, Category as Oi
@@ -61,8 +62,7 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
             x, y, w, h = line['bbox']
             obj.bb = (x, y, x+w, y+h)
             pred.images[-1].add_object(copy.deepcopy(obj))
-            yaw, pitch, roll = line['pose']
-            obj.headpose = np.array([yaw, pitch, roll])
+            obj.headpose = Rotation.from_euler('YXZ', line['pose'], degrees=True).as_matrix()
             for lnd in line['landmarks']:
                 lp = list(mapping.keys())[next((ids for ids, xs in enumerate(mapping.values()) for x in xs if x == lnd['label']), None)]
                 obj.add_landmark(FaceLandmark(lnd['label'], Lp(lp), lnd['pos'], lnd['visible'], lnd['confidence']))

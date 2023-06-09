@@ -141,7 +141,8 @@ class Opal23Headpose(Alignment):
                 with torch.set_grad_enabled(self.model.training):
                     output = self.model(tensor_image)
 
-                obj_pred.headpose = output[0].detach().cpu().numpy()
+                import images_framework.alignment.opal23_headpose.test.utils as utils
+                obj_pred.headpose = utils.convert_rotation(output[0].detach().cpu().numpy(), 'matrix', use_pyr_format=True)
 
     # def _pyr_to_ypr(self, pose):
     # from .utils import convert_rotation
