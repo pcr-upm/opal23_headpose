@@ -4,10 +4,10 @@ __author__ = 'Alejandro Cobo'
 __email__ = 'alejandro.cobo@upm.es'
 
 import os
-from PIL import Image
 import cv2
-import numpy as np
 import torch
+import numpy as np
+from PIL import Image
 from images_framework.src.alignment import Alignment
 from images_framework.src.constants import Modes
 from .irn_relu import IRN
@@ -139,17 +139,6 @@ class Opal23Headpose(Alignment):
                 tensor_image = tensor_image.unsqueeze(0).to(self.gpu)
 
                 with torch.set_grad_enabled(self.model.training):
-                    output = self.model(tensor_image)
+                    euler = self.model(tensor_image)[0].detach().cpu().numpy()
 
-                import images_framework.alignment.opal23_headpose.test.utils as utils
-                obj_pred.headpose = utils.convert_rotation(output[0].detach().cpu().numpy(), 'matrix', use_pyr_format=True)
-
-    # def _pyr_to_ypr(self, pose):
-    # from .utils import convert_rotation
-    #     t_pose = torch.zeros(1, 3, dtype=torch.float32)
-    #     t_pose_ypr = convert_rotation(t_pose, 'matrix', use_pyr_format=False)
-    #     t_pose_pyr = convert_rotation(t_pose, 'matrix', use_pyr_format=True)
-    #     delta = torch.bmm(t_pose_pyr.transpose(1, 2), t_pose_ypr)
-    #     pose = convert_rotation(pose, 'matrix', use_pyr_format=True)
-    #     pose = torch.bmm(pose, delta)
-    #     return convert_rotation(pose, 'euler', use_pyr_format=False)
+                obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix().transpose()
