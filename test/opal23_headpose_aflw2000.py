@@ -11,7 +11,6 @@ import copy
 import argparse
 import numpy as np
 from tqdm import tqdm
-from scipy.spatial.transform import Rotation
 from images_framework.src.datasets import Database
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite

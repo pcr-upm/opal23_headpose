@@ -31,12 +31,13 @@ class Opal23Headpose(Alignment):
         self.gpu = None
         self.width = 128
         self.height = 128
-        self.rotation_mode = 'euler'
-        self.target_dist = 1.6
+        self.rotation_mode = None
+        self.target_dist = None
 
     def parse_options(self, params):
         super().parse_options(params)
         import argparse
+        from images_framework.src.datasets import AFLW2000
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
         parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', 'ortho6d'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
@@ -46,6 +47,11 @@ class Opal23Headpose(Alignment):
         print(parser.format_usage())
         self.rotation_mode = args.rotation_mode
         self.gpu = args.gpu if args.gpu >= 0 else 'cpu'
+        if self.database in AFLW2000().get_names():
+            self.target_dist = 1.6  # AFLW2000
+            # self.target_dist = 1.0  # Biwi
+        else:
+            raise ValueError('Database is not implemented')
 
     def preprocess(self, image, bbox):
         x_min, y_min, x_max, y_max = bbox
