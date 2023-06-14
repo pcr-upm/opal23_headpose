@@ -48,8 +48,8 @@ class Opal23Headpose(Alignment):
         self.rotation_mode = args.rotation_mode
         self.gpu = args.gpu if args.gpu >= 0 else 'cpu'
         if self.database in AFLW2000().get_names():
-            self.target_dist = 1.6  # AFLW2000
-            # self.target_dist = 1.0  # Biwi
+            # self.target_dist = 1.6  # AFLW2000
+            self.target_dist = 1.0  # Biwi
         else:
             raise ValueError('Database is not implemented')
 
@@ -147,4 +147,4 @@ class Opal23Headpose(Alignment):
                 with torch.set_grad_enabled(self.model.training):
                     euler = self.model(tensor_image)[0].detach().cpu().numpy()
 
-                obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix().transpose()
+                obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix()
