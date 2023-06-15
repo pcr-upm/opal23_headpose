@@ -23,7 +23,7 @@ class PoseHead(nn.Module):
             channels_pose = 3
         elif rotation_mode == 'quaternion':
             channels_pose = 4
-        elif rotation_mode == 'ortho6d':
+        elif rotation_mode == '6d':
             channels_pose = 6
         else:
             raise NotImplementedError(f"Unknown rotation mode: {rotation_mode}")

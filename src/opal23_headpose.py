@@ -39,7 +39,7 @@ class Opal23Headpose(Alignment):
         import argparse
         from images_framework.src.datasets import AFLW2000
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
-        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', 'ortho6d'], default='euler',
+        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
         parser.add_argument('--gpu', dest='gpu', default=-1, type=int,
                             help='GPU ID (negative value indicates CPU).')
@@ -145,6 +145,14 @@ class Opal23Headpose(Alignment):
                 tensor_image = tensor_image.unsqueeze(0).to(self.gpu)
 
                 with torch.set_grad_enabled(self.model.training):
-                    euler = self.model(tensor_image)[0].detach().cpu().numpy()
-
-                obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix()
+                    if self.rotation_mode == 'euler':
+                        euler = self.model(tensor_image)[0].detach().cpu().numpy()
+                        obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix()
+                    elif self.rotation_mode == 'quaternion':
+                        quaternion = self.model(tensor_image)[0].detach().cpu().numpy()
+                        obj_pred.headpose = Rotation.from_quat(quaternion).as_matrix()
+                    elif self.rotation_mode == '6d':
+                        rot = self.model(tensor_image)[0].detach().cpu().numpy()  # Gram-Schmidt orthogonalization
+                        obj_pred.headpose = np.array([[rot[0], rot[1], 0], [rot[2], rot[3], 0], [rot[4], rot[5], 1]])
+                    else:
+                        raise ValueError('Rotation mode is not implemented')
