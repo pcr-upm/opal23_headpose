@@ -2,13 +2,14 @@ import cv2
 import numpy as np
 
 
-def align_predictions(ann, pred, tol=0.0001):
+def align_predictions(ann, pred, tol=0.0001, max_iter=100000):
     """
     Aligns predictions to remove systematic errors entangled with prediction errors in cross-dataset evaluations.
 
     :param ann: N x 3 x 3 numpy.ndarray containing ground-truth rotation matrices.
     :param pred: N x 3 x 3 numpy.ndarray containing predicted rotation matrices.
     :param tol: minimum error value needed to finish the optimization.
+    :param max_iter: maximum number of iterations in the optimization loop.
     :returns: N x 3 x 3 numpy.ndarray containing the aligned rotation matrices.
     """
 
@@ -24,7 +25,7 @@ def align_predictions(ann, pred, tol=0.0001):
     deltas = deltas[gd < np.pi / 2]
 
     res = deltas[0, :, :]
-    while True:
+    for _ in range(max_iter):
         displacement = _average_displacement(res, deltas)
         d_norm = np.linalg.norm(displacement)
         if d_norm < tol:
