@@ -11,6 +11,7 @@ import copy
 import argparse
 import numpy as np
 from tqdm import tqdm
+from scipy.spatial.transform import Rotation
 from images_framework.src.datasets import Database
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
@@ -74,20 +75,20 @@ def main():
     # Load vision components
     composite = Composite()
     sr = Opal23Headpose('images_framework/alignment/opal23_headpose/')
-    sr.target_dist = 1.6
     composite.add(sr)
     composite.parse_options(unknown)
     anns = load_annotations(anns_file)
     # Process frame and show results
     print('Process annotations in ' + Modes.TEST.name + ' mode ...')
     composite.load(Modes.TEST)
+    sr.target_dist = 1.6
     anno_euler_array, pred_euler_array, anno_matrix_array, pred_matrix_array = [], [], [], []
     for i in tqdm(range(len(anns)), file=sys.stdout):
         pred = copy.deepcopy(anns[i])
         composite.process(anns[i], pred)
         for idx in range(len(pred.images[0].objects)):
-            anno_euler_array.append(utils.convert_rotation(anns[i].images[0].objects[idx].headpose, 'euler', use_pyr_format=True))
-            pred_euler_array.append(utils.convert_rotation(pred.images[0].objects[idx].headpose, 'euler', use_pyr_format=True))
+            anno_euler_array.append(np.array(Rotation.from_matrix(anns[i].images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]])
+            pred_euler_array.append(np.array(Rotation.from_matrix(pred.images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]])
             anno_matrix_array.append(anns[i].images[0].objects[idx].headpose)
             pred_matrix_array.append(pred.images[0].objects[idx].headpose)
     # Compute MAE and GE metrics

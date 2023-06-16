@@ -37,21 +37,18 @@ class Opal23Headpose(Alignment):
     def parse_options(self, params):
         super().parse_options(params)
         import argparse
-        from images_framework.src.datasets import AFLW2000
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
-        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d'], default='euler',
-                            help='Internal pose parameterization of the network (default: euler).')
         parser.add_argument('--gpu', dest='gpu', default=-1, type=int,
                             help='GPU ID (negative value indicates CPU).')
+        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d'], default='euler',
+                            help='Internal pose parameterization of the network (default: euler).')
+        parser.add_argument('--target-dist', type=float, default=1.0,
+                            help='Target distance for each test data set (default: 1.0).')
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())
-        self.rotation_mode = args.rotation_mode
         self.gpu = args.gpu if args.gpu >= 0 else 'cpu'
-        if self.database in AFLW2000().get_names():
-            # self.target_dist = 1.6  # AFLW2000
-            self.target_dist = 1.0  # Biwi
-        else:
-            raise ValueError('Database is not implemented')
+        self.rotation_mode = args.rotation_mode
+        self.target_dist = args.target_dist
 
     def preprocess(self, image, bbox):
         x_min, y_min, x_max, y_max = bbox
