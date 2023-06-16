@@ -88,17 +88,19 @@ def main():
         pred = copy.deepcopy(anns[i])
         composite.process(anns[i], pred)
         for idx in range(len(pred.images[0].objects)):
-            anno_matrix_array.append(anns[i].images[0].objects[idx].headpose)
-            pred_matrix_array.append(pred.images[0].objects[idx].headpose)
+            anno_angle = np.array(Rotation.from_matrix(anns[i].images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+            pred_angle = np.array(Rotation.from_matrix(pred.images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]]
+            anno_matrix_array.append(utils.convert_rotation(anno_angle, 'matrix', use_pyr_format=True))
+            pred_matrix_array.append(utils.convert_rotation(pred_angle, 'matrix', use_pyr_format=True))
             seq_id = int(anns[i].images[0].filename.split('/')[-2])
-            sequences[seq_id - 1].append(i + idx)
+            sequences[seq_id-1].append(i+idx)
     # Prediction alignment
-    ann_matrix_array = np.array(anno_matrix_array)
-    pred_matrix_array = np.array(pred_matrix_array)
     for seq in sequences:
-        pred_matrix_array[seq] = utils.align_predictions(ann_matrix_array[seq], pred_matrix_array[seq])
+        anno_matrix_array = np.array(anno_matrix_array)
+        pred_matrix_array = np.array(pred_matrix_array)
+        pred_matrix_array[seq] = utils.align_predictions(anno_matrix_array[seq], pred_matrix_array[seq])
     # Compute Euler angles from rotation matrices
-    anno_euler_array = [np.array(utils.convert_rotation(rotm, 'euler', use_pyr_format=True)) for rotm in ann_matrix_array]
+    anno_euler_array = [np.array(utils.convert_rotation(rotm, 'euler', use_pyr_format=True)) for rotm in anno_matrix_array]
     pred_euler_array = [np.array(utils.convert_rotation(rotm, 'euler', use_pyr_format=True)) for rotm in pred_matrix_array]
     # Compute MAE and GE metrics
     mae = np.mean(utils.compute_mae(np.array(anno_euler_array), np.array(pred_euler_array), use_pyr_format=True), axis=0)
