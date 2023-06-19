@@ -16,7 +16,7 @@ from images_framework.src.datasets import Database
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
 from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose
-import images_framework.alignment.opal23_headpose.test.utils as utils
+from images_framework.alignment.opal23_headpose.test.evaluator import Evaluator
 
 
 def parse_options():
@@ -78,6 +78,7 @@ def main():
     composite.add(sr)
     composite.parse_options(unknown)
     anns = load_annotations(anns_file)
+
     # Process frame and show results
     print('Process annotations in ' + Modes.TEST.name + ' mode ...')
     composite.load(Modes.TEST)
@@ -88,23 +89,19 @@ def main():
         pred = copy.deepcopy(anns[i])
         composite.process(anns[i], pred)
         for idx in range(len(pred.images[0].objects)):
-            anno_angle = np.array(Rotation.from_matrix(anns[i].images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]]
-            pred_angle = np.array(Rotation.from_matrix(pred.images[0].objects[idx].headpose).as_euler('XYZ', degrees=True))[[1, 0, 2]]
-            anno_matrix_array.append(utils.convert_rotation(anno_angle, 'matrix', use_pyr_format=True))
-            pred_matrix_array.append(utils.convert_rotation(pred_angle, 'matrix', use_pyr_format=True))
+            anno_matrix_array.append(anns[i].images[0].objects[idx].headpose)
+            pred_matrix_array.append(pred.images[0].objects[idx].headpose)
             seq_id = int(anns[i].images[0].filename.split('/')[-2])
             sequences[seq_id-1].append(i+idx)
+
     # Prediction alignment
+    evaluator = Evaluator(np.array(anno_matrix_array), np.array(pred_matrix_array), use_pyr_format=True)
     for seq in sequences:
-        anno_matrix_array = np.array(anno_matrix_array)
-        pred_matrix_array = np.array(pred_matrix_array)
-        pred_matrix_array[seq] = utils.align_predictions(anno_matrix_array[seq], pred_matrix_array[seq])
-    # Compute Euler angles from rotation matrices
-    anno_euler_array = [np.array(utils.convert_rotation(rotm, 'euler', use_pyr_format=True)) for rotm in anno_matrix_array]
-    pred_euler_array = [np.array(utils.convert_rotation(rotm, 'euler', use_pyr_format=True)) for rotm in pred_matrix_array]
+        evaluator.align_predictions(mask=seq)
+
     # Compute MAE and GE metrics
-    mae = np.mean(utils.compute_mae(np.array(anno_euler_array), np.array(pred_euler_array), use_pyr_format=True), axis=0)
-    ge = np.mean(utils.compute_ge(np.array(anno_matrix_array), np.array(pred_matrix_array)))
+    mae = np.mean(evaluator.compute_mae(), axis=0)
+    ge = np.mean(evaluator.compute_ge())
     print('MAE (yaw, pitch, roll): ' + str(mae))
     print('MAE: ' + str(np.mean(mae)))
     print('GE: ' + str(ge))

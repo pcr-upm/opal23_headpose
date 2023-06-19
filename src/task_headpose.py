@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class PoseHead(nn.Module):
@@ -45,6 +46,8 @@ class PoseHead(nn.Module):
 
             if self.rotation_mode == 'quaternions':
                 pose = self._axis_angle_to_quaternion(pose)
+            elif self.rotation_mode == '6d':
+                pose = self._6d_to_rotation_matrix(pose)
 
             pose = pose.reshape(pose.shape[0], -1)
             pose_out.append(pose)
@@ -60,3 +63,21 @@ class PoseHead(nn.Module):
         qy = x[:, 1] * torch.sin(x[:, 3])
         qz = x[:, 2] * torch.sin(x[:, 3])
         return torch.cat([qw, qx, qy, qz], dim=0)
+
+    # Y. Zhou et al., "On the Continuity of Rotation Representations in Neural Networks"
+    # https://github.com/papagina/RotationContinuity
+    def _6d_to_rotation_matrix(self, poses):
+        x_raw = poses[:, 0:3]  # batch*3
+        y_raw = poses[:, 3:6]  # batch*3
+
+        eps = torch.finfo(poses.dtype).eps
+        x = F.normalize(x_raw, dim=1, eps=eps)  # batch*3
+        z = torch.cross(x, y_raw, dim=1)  # batch*3
+        z = F.normalize(z, dim=1, eps=eps)  # batch*3
+        y = torch.cross(z, x, dim=1)  # batch*3
+
+        x = x.view(-1, 3, 1)
+        y = y.view(-1, 3, 1)
+        z = z.view(-1, 3, 1)
+        matrix = torch.cat((x, y, z), 2)  # batch*3*3
+        return matrix

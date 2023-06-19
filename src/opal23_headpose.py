@@ -142,14 +142,15 @@ class Opal23Headpose(Alignment):
                 tensor_image = tensor_image.unsqueeze(0).to(self.gpu)
 
                 with torch.set_grad_enabled(self.model.training):
+                    out = self.model(tensor_image)[0].detach().cpu().numpy()
                     if self.rotation_mode == 'euler':
-                        euler = self.model(tensor_image)[0].detach().cpu().numpy()
-                        obj_pred.headpose = Rotation.from_euler('XYZ', [euler[1], euler[0], euler[2]], degrees=True).as_matrix()
+                        yaw, pitch, roll = out
+                        obj_pred.headpose = Rotation.from_euler('XYZ', [pitch, yaw, roll], degrees=True).as_matrix()
                     elif self.rotation_mode == 'quaternion':
-                        quaternion = self.model(tensor_image)[0].detach().cpu().numpy()
-                        obj_pred.headpose = Rotation.from_quat(quaternion).as_matrix()
+                        w, x, y, z = out
+                        obj_pred.headpose = Rotation.from_quat([x, y, z, w]).as_matrix().T
                     elif self.rotation_mode == '6d':
-                        rot = self.model(tensor_image)[0].detach().cpu().numpy()  # Gram-Schmidt orthogonalization
-                        obj_pred.headpose = np.array([[rot[0], rot[1], 0], [rot[2], rot[3], 0], [rot[4], rot[5], 1]])
+                        matrix = out.reshape(3, 3).T
+                        obj_pred.headpose = matrix
                     else:
-                        raise ValueError('Rotation mode is not implemented')
+                        raise NotImplementedError(f"Rotation mode '{self.rotation_mode}' is not implemented")
