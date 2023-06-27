@@ -40,7 +40,7 @@ class Opal23Headpose(Alignment):
         parser = argparse.ArgumentParser(prog='Opal23Headpose', add_help=False)
         parser.add_argument('--gpu', dest='gpu', default=-1, type=int,
                             help='GPU ID (negative value indicates CPU).')
-        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d'], default='euler',
+        parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d', '6d_opal'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
         parser.add_argument('--target-dist', type=float, default=1.0,
                             help='Target distance for each test data set (default: 1.0).')
@@ -149,7 +149,7 @@ class Opal23Headpose(Alignment):
                     elif self.rotation_mode == 'quaternion':
                         w, x, y, z = out
                         obj_pred.headpose = Rotation.from_quat([x, y, z, w]).as_matrix().T
-                    elif self.rotation_mode == '6d':
+                    elif self.rotation_mode == '6d' or self.rotation_mode == '6d_opal':
                         matrix = out.reshape(3, 3).T
                         obj_pred.headpose = matrix
                     else:

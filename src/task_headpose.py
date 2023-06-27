@@ -24,7 +24,7 @@ class PoseHead(nn.Module):
             channels_pose = 3
         elif rotation_mode == 'quaternion':
             channels_pose = 4
-        elif rotation_mode == '6d':
+        elif rotation_mode == '6d' or rotation_mode == '6d_opal':
             channels_pose = 6
         else:
             raise NotImplementedError(f"Unknown rotation mode: {rotation_mode}")
@@ -46,7 +46,7 @@ class PoseHead(nn.Module):
 
             if self.rotation_mode == 'quaternions':
                 pose = self._axis_angle_to_quaternion(pose)
-            elif self.rotation_mode == '6d':
+            elif self.rotation_mode == '6d' or self.rotation_mode == '6d_opal':
                 pose = self._6d_to_rotation_matrix(pose)
 
             pose = pose.reshape(pose.shape[0], -1)
