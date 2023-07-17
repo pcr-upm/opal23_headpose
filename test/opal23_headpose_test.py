@@ -15,10 +15,11 @@ from pathlib import Path
 from scipy.spatial.transform import Rotation
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
-from images_framework.src.categories import FaceLandmarkPart as Lp, Category as Oi
-from images_framework.src.annotations import GenericGroup, GenericImage, FaceObject, FaceLandmark, GenericCategory
+from images_framework.src.categories import Category as Oi
+from images_framework.src.annotations import GenericGroup, GenericImage, FaceObject, GenericLandmark, GenericCategory
 from images_framework.src.viewer import Viewer
 from images_framework.src.utils import load_geoimage
+from images_framework.alignment.landmarks import FaceLandmarkPart as Lp
 from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose
 
 image_extensions = ('bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff')
@@ -65,7 +66,7 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
             obj.headpose = Rotation.from_euler('YXZ', line['pose'], degrees=True).as_matrix()
             for lnd in line['landmarks']:
                 lp = list(mapping.keys())[next((ids for ids, xs in enumerate(mapping.values()) for x in xs if x == lnd['label']), None)]
-                obj.add_landmark(FaceLandmark(lnd['label'], Lp(lp), lnd['pos'], lnd['visible'], lnd['confidence']))
+                obj.add_landmark(GenericLandmark(lnd['label'], Lp(lp), lnd['pos'], lnd['visible'], lnd['confidence']))
             obj.add_category(GenericCategory(label=Oi.FACE))
             img_ann.add_object(obj)
     else:
