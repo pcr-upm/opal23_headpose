@@ -72,6 +72,7 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
     else:
         from images_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
         sd = SSD16Detection('images_framework/detection/ssd16_detection/')
+        sd.parse_options(['--database', 'aflw'])
         sd.load(Modes.TEST)
         sd.process(ann, pred)
     ann.add_image(img_ann)
