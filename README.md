@@ -1,8 +1,9 @@
 # Head pose using OPAL (2023)
 
 #### Requisites
-- images_framework https://github.com/bobetocalo/images_framework
+- images_framework https://github.com/pcr-upm/images_framework
 - Pytorch (v1.13.0)
+- SciPy
 
 #### Installation
 This repository must be located inside the following directory:
