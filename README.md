@@ -32,13 +32,9 @@ usage: Opal23Headpose [--gpu GPU]
 ```
 
 * Use the --gpu option to set the GPU identifier (negative value indicates CPU mode).
-```
-usage: Opal23Headpose [--model-path MODEL_PATH]
-```
 
-* Use the --model-path option to load a pre-trained model from the data directory.
 ```
-usage: Opal23Headpose [--rotation-mode {euler,quaternion,ortho6d}]
+usage: Opal23Headpose [--rotation-mode {euler,quaternion,6d,6d_opal}]
 ```
 
 * Use the --rotation-mode option to specify the internal pose parameterization of the network.

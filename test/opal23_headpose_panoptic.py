@@ -81,7 +81,7 @@ def main():
     # Process frame and show results
     print('Process annotations in ' + Modes.TEST.name + ' mode ...')
     composite.load(Modes.TEST)
-    sr.target_dist = 1.6
+    sr.target_dist = 1.0  # Bounding box not enlarged
     anno_matrix_array, pred_matrix_array = [], []
     for i in tqdm(range(len(anns)), file=sys.stdout):
         pred = copy.deepcopy(anns[i])

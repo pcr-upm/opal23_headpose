@@ -28,11 +28,11 @@ class Opal23Headpose(Alignment):
         super().__init__()
         self.path = path
         self.model = None
-        self.gpu = None
+        self.device = None
         self.width = 128
         self.height = 128
         self.rotation_mode = None
-        self.target_dist = None
+        self.target_dist = 1.0
 
     def parse_options(self, params):
         super().parse_options(params)
@@ -42,13 +42,10 @@ class Opal23Headpose(Alignment):
                             help='GPU ID (negative value indicates CPU).')
         parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d', '6d_opal'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
-        parser.add_argument('--target-dist', type=float, default=1.0,
-                            help='Target distance for each test data set (default: 1.0).')
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())
-        self.gpu = args.gpu if args.gpu >= 0 else 'cpu'
+        self.device = args.gpu if args.gpu >= 0 else 'cpu'
         self.rotation_mode = args.rotation_mode
-        self.target_dist = args.target_dist
 
     def preprocess(self, image, bbox):
         x_min, y_min, x_max, y_max = bbox
@@ -82,7 +79,6 @@ class Opal23Headpose(Alignment):
         warped_image = image.transform((self.width, self.height), Image.AFFINE, inv_affine_transf.flatten())
         warped_image = np.array(warped_image)
         warped_image = cv2.cvtColor(warped_image, cv2.COLOR_RGB2BGR)
-        # warped_image = cv2.warpAffine(image, affine_transf, (128, 128), cv2.INTER_NEAREST)
         return warped_image
 
     def _get_inverse_transf(self, affine_transf):
@@ -121,7 +117,7 @@ class Opal23Headpose(Alignment):
         state_dict = torch.load(model_file)
         self.model.load_state_dict(state_dict)
         self.model.train(mode is Modes.TRAIN)
-        self.model.to(self.gpu)
+        self.model.to(self.device)
 
     def process(self, ann, pred):
         from scipy.spatial.transform import Rotation
@@ -131,19 +127,17 @@ class Opal23Headpose(Alignment):
             for obj_pred in img_pred.objects:
                 # Generate prediction
                 warped_image = self.preprocess(image, obj_pred.bb)
-                # from matplotlib import pyplot as plt
-                # aux = warped_image.copy()
-                # plt.imshow(aux)
-                # plt.show()
 
                 # Image array (H x W x C) to tensor (1 x C x H x W)
                 tensor_image = torch.tensor(warped_image, dtype=torch.float)
                 tensor_image = tensor_image.permute(2, 0, 1) / 255
-                tensor_image = tensor_image.unsqueeze(0).to(self.gpu)
+                tensor_image = tensor_image.unsqueeze(0).to(self.device)
 
                 with torch.set_grad_enabled(self.model.training):
                     out = self.model(tensor_image)[0].detach().cpu().numpy()
                     if self.rotation_mode == 'euler':
+                        if self.database == 'panoptic':
+                            out *= 180.0  # [-1, 1] -> [-180º, 180º]
                         yaw, pitch, roll = out
                         obj_pred.headpose = Rotation.from_euler('XYZ', [pitch, yaw, roll], degrees=True).as_matrix()
                     elif self.rotation_mode == 'quaternion':
@@ -153,4 +147,5 @@ class Opal23Headpose(Alignment):
                         matrix = out.reshape(3, 3).T
                         obj_pred.headpose = matrix
                     else:
-                        raise NotImplementedError(f"Rotation mode '{self.rotation_mode}' is not implemented")
+                        raise NotImplementedError(f"Rotation mode '{self.rotation_mode}' is not implemented. "
+                                                  "Possible values: 'euler', 'quaternion', '6d' or '6d_opal'")
