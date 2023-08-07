@@ -91,14 +91,21 @@ def main():
             anno_matrix_array.append(anns[i].images[0].objects[idx].headpose)
             pred_matrix_array.append(pred.images[0].objects[idx].headpose)
             seq_id = int(anns[i].images[0].filename.split('/')[-2])
-            sequences[seq_id-1].append(i+idx)
-
-    # Prediction alignment
-    evaluator = Evaluator(np.array(anno_matrix_array), np.array(pred_matrix_array), use_pyr_format=True)
-    for seq in sequences:
-        evaluator.align_predictions(mask=seq)
+            sequences[seq_id - 1].append(i + idx)
 
     # Compute MAE and GE metrics
+    evaluator = Evaluator(np.array(anno_matrix_array), np.array(pred_matrix_array))
+
+    print('\nUnaligned results:')
+    mae = np.mean(evaluator.compute_mae(), axis=0)
+    ge = np.mean(evaluator.compute_ge())
+    print('MAE (yaw, pitch, roll): ' + str(mae))
+    print('MAE: ' + str(np.mean(mae)))
+    print('GE: ' + str(ge))
+
+    print('\nAligned results:')
+    for seq in sequences:
+        evaluator.align_predictions(mask=seq)
     mae = np.mean(evaluator.compute_mae(), axis=0)
     ge = np.mean(evaluator.compute_ge())
     print('MAE (yaw, pitch, roll): ' + str(mae))

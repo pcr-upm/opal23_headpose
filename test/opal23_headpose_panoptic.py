@@ -91,7 +91,7 @@ def main():
             pred_matrix_array.append(pred.images[0].objects[idx].headpose)
 
     # Compute MAE and GE metrics
-    evaluator = Evaluator(np.array(anno_matrix_array), np.array(pred_matrix_array), use_pyr_format=True)
+    evaluator = Evaluator(np.array(anno_matrix_array), np.array(pred_matrix_array))
     mae = np.mean(evaluator.compute_mae(), axis=0)
     ge = np.mean(evaluator.compute_ge())
     print('MAE (yaw, pitch, roll): ' + str(mae))
