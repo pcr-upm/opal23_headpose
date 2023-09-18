@@ -62,13 +62,13 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
             obj = PersonObject()
             x, y, w, h = line['bbox']
             obj.bb = (x, y, x+w, y+h)
+            obj.add_category(GenericCategory(label=Oi.FACE))
             pred.images[-1].add_object(copy.deepcopy(obj))
             obj.headpose = Rotation.from_euler('YXZ', line['pose'], degrees=True).as_matrix()
             for lnd in line['landmarks']:
                 name = list(mapping.keys())[next((ids for ids, xs in enumerate(mapping.values()) for x in xs if x == lnd['label']), None)]
                 lp = next((elem for part in lps.keys() for elem in part if elem.value == name), None)
                 obj.add_landmark(GenericLandmark(lnd['label'], lp, lnd['pos'], lnd['visible'], lnd['confidence']), lps[type(lp)])
-            obj.add_category(GenericCategory(label=Oi.FACE))
             img_ann.add_object(obj)
     else:
         from images_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
