@@ -10,7 +10,7 @@ RUN touch /root/.ssh/known_hosts
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 # Download the computer vision framework
 RUN git clone git@github.com:pcr-upm/images_framework.git images_framework
-RUN git clone git@github.com:bobetocalo/opal23_headpose.git images_framework/alignment/opal23_headpose
+RUN git clone git@github.com:pcr-upm/opal23_headpose.git images_framework/alignment/opal23_headpose
 ADD data /images_framework/alignment/opal23_headpose/data
 
 # Copy the repository from the previous image
@@ -33,6 +33,5 @@ ENV PATH /home/username/conda/envs/opal23/bin:/home/username/conda/bin:$PATH
 # Make RUN commands use the new environment (source activate opal23)
 SHELL ["conda", "run", "-n", "opal23", "/bin/bash", "-c"]
 # Install dependencies
-RUN pip install tqdm Pillow
-RUN pip install numpy opencv-python rasterio scipy
+RUN pip install tqdm Pillow numpy opencv-python rasterio scipy
 RUN pip install torch==1.13.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117

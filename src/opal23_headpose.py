@@ -32,7 +32,7 @@ class Opal23Headpose(Alignment):
         self.width = 128
         self.height = 128
         self.rotation_mode = None
-        self.target_dist = 1.0
+        self.target_dist = None
 
     def parse_options(self, params):
         super().parse_options(params)
@@ -42,10 +42,13 @@ class Opal23Headpose(Alignment):
                             help='GPU ID (negative value indicates CPU).')
         parser.add_argument('--rotation-mode', type=str, choices=['euler', 'quaternion', '6d', '6d_opal'], default='euler',
                             help='Internal pose parameterization of the network (default: euler).')
+        parser.add_argument('--target-dist', type=float, default=1.0,
+                            help='Target distance for each test data set (default: 1.0).')
         args, unknown = parser.parse_known_args(params)
         print(parser.format_usage())
         self.device = args.gpu if args.gpu >= 0 else 'cpu'
         self.rotation_mode = args.rotation_mode
+        self.target_dist = args.target_dist
 
     def preprocess(self, image, bbox):
         x_min, y_min, x_max, y_max = bbox
