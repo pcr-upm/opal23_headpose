@@ -1,6 +1,6 @@
 # On the representation and methodology for wide and short range head pose estimation
 
-We provide Python code in order to replicate the head pose experiments in our paper https://www.sciencedirect.com/science/article/pii/S0031320324000141
+We provide Python code in order to replicate the head pose experiments in our paper https://doi.org/10.1016/j.patcog.2024.110263
 
 If you use this code for your own research, you must reference our journal paper:
 
