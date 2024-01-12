@@ -1,5 +1,7 @@
 # On the representation and methodology for wide and short range head pose estimation
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/on-the-representation-and-methodology-for/head-pose-estimation-on-aflw2000)](https://paperswithcode.com/sota/head-pose-estimation-on-aflw2000?p=on-the-representation-and-methodology-for)
+
 We provide Python code in order to replicate the head pose experiments in our paper https://doi.org/10.1016/j.patcog.2024.110263
 
 If you use this code for your own research, you must reference our journal paper:
