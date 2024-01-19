@@ -55,3 +55,12 @@ usage: Opal23Headpose [--rotation-mode {euler,quaternion,6d,6d_opal}]
 ```
 > python images_framework/alignment/opal23_headpose/test/opal23_headpose_test.py --input-data images_framework/alignment/opal23_headpose/test/example.tif --database 300wlp --gpu 0 --rotation-mode euler --save-image
 ```
+
+#### Notebooks
+The directory [notebooks](notebooks) contains examples regarding some of the contributions of our paper:
+
+* [Loading annotations](notebooks/load_data.ipynb): this notebook contains a simple implementation of a PyTorch Dataset
+class that uses our annotations for CMU Panoptic Dataset and shows sample images.
+
+* [Prediction alignment](notebooks/align_predictions.ipynb): this notebook shows an example on how to align model
+predictions to reduce systematic errors in cross-dataset evaluations.
