@@ -14,6 +14,8 @@ Pattern Recognition, PR 2024.
 https://doi.org/10.1016/j.patcog.2024.110263
 ```
 
+<img src=samples/opal_panoptic.gif/>
+
 #### Requisites
 - images_framework https://github.com/pcr-upm/images_framework
 - pytorch (v1.13.0)
