@@ -79,6 +79,10 @@ class Opal23Headpose(Alignment):
         affine_transf = np.array([[mu_x, 0, new_x0 - mu_x * x0],
                                   [0, mu_y, new_y0 - mu_y * y0]])
         inv_affine_transf = self._get_inverse_transf(affine_transf)
+
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+
         warped_image = image.transform((self.width, self.height), Image.AFFINE, inv_affine_transf.flatten())
         warped_image = np.array(warped_image)
         warped_image = cv2.cvtColor(warped_image, cv2.COLOR_RGB2BGR)
@@ -126,7 +130,7 @@ class Opal23Headpose(Alignment):
         from scipy.spatial.transform import Rotation
         for img_pred in pred.images:
             # Load image
-            image = Image.open(img_pred.filename)
+            image = cv2.imread(img_pred.filename)
             for obj_pred in img_pred.objects:
                 # Generate prediction
                 warped_image = self.preprocess(image, obj_pred.bb)
@@ -146,7 +150,7 @@ class Opal23Headpose(Alignment):
                     elif self.rotation_mode == 'quaternion':
                         w, x, y, z = out
                         obj_pred.headpose = Rotation.from_quat([x, y, z, w]).as_matrix().T
-                    elif self.rotation_mode == '6d' or self.rotation_mode == '6d_opal':
+                    elif self.rotation_mode in ('6d', '6d_opal'):
                         matrix = out.reshape(3, 3).T
                         obj_pred.headpose = matrix
                     else:
