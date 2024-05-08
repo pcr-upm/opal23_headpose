@@ -67,3 +67,6 @@ class that uses our annotations for CMU Panoptic Dataset and shows sample images
 
 * [Prediction alignment](notebooks/align_predictions.ipynb): this notebook shows an example on how to align model
 predictions to reduce systematic errors in cross-dataset evaluations.
+
+* [Opal loss](notebooks/opal_loss.ipynb): this notebook shows an usage example of our Opal Loss function 
+for Head Pose Estimation.
