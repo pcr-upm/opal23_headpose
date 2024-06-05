@@ -8,6 +8,6 @@ sudo docker stop opal23_headpose_container
 echo 'Transferring data from docker container to your local machine ...'
 mkdir -p output
 sudo chown -R "${USER}":"${USER}" /var/lib/docker/
-rsync --delete -azvv /var/lib/docker/volumes/opal23_headpose_volume/_data/output/ output
+rsync --delete -azvv /var/lib/docker/volumes/opal23_headpose_volume/_data/images_framework/output/images/ output
 sudo docker system prune --all --force --volumes
 sudo docker volume rm $(sudo docker volume ls -qf dangling=true)
