@@ -13,8 +13,8 @@ import numpy as np
 from tqdm import tqdm
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
-from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose, load_annotations
-from images_framework.alignment.opal23_headpose.test.evaluator import Evaluator
+from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose
+from images_framework.alignment.opal23_headpose.test.evaluator import load_annotations, Evaluator
 
 
 def parse_options():
