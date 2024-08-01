@@ -11,11 +11,10 @@ import copy
 import argparse
 import numpy as np
 from tqdm import tqdm
-from images_framework.src.datasets import Database
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
 from images_framework.alignment.opal23_headpose.src.opal23_headpose import Opal23Headpose
-from images_framework.alignment.opal23_headpose.test.evaluator import Evaluator
+from images_framework.alignment.opal23_headpose.test.evaluator import load_annotations, Evaluator
 
 
 def parse_options():
@@ -29,39 +28,6 @@ def parse_options():
     print(parser.format_usage())
     anns_file = args.anns_file
     return unknown, anns_file
-
-
-def load_annotations(anns_file):
-    """
-    Load ground truth annotations according to each database.
-    """
-    print('Open annotations file: ' + str(anns_file))
-    if os.path.isfile(anns_file):
-        pos = anns_file.rfind('/') + 1
-        path = anns_file[:pos]
-        file = anns_file[pos:]
-        db = file[:file.find('_ann')]
-        datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
-        with open(anns_file, 'r', encoding='utf-8') as ifs:
-            lines = ifs.readlines()
-            anns = []
-            for i in tqdm(range(len(lines)), file=sys.stdout):
-                parts = lines[i].strip().split(';')
-                if parts[0] == '@':
-                    db = parts[1]
-                if parts[0] == '#' or parts[0] == '@':
-                    continue
-                idx = [datasets.index(subset) for subset in datasets if db in subset]
-                if len(idx) != 1:
-                    raise ValueError('Database does not exist')
-                seq = Database.__subclasses__()[idx[0]]().load_filename(path, db, lines[i])
-                if len(seq.images) == 0:
-                    continue
-                anns.append(seq)
-        ifs.close()
-    else:
-        raise ValueError('Annotations file does not exist')
-    return anns
 
 
 def main():

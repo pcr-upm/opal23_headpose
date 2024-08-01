@@ -1,6 +1,44 @@
+from pathlib import Path
+import sys
+
 import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation
+from tqdm import tqdm
+
+from images_framework.src.datasets import Database
+
+
+def load_annotations(anns_file):
+    """
+    Load ground truth annotations according to each database.
+    """
+    print('Open annotations file: ' + str(anns_file))
+    anns_file = Path(anns_file)
+    if anns_file.exists():
+        path = str(anns_file.parent.as_posix()) + '/'
+        db = anns_file.stem.split('_')[0]
+        datasets = [subclass().get_names() for subclass in Database.__subclasses__()]
+        with open(anns_file, 'r', encoding='utf-8') as ifs:
+            lines = ifs.readlines()
+            anns = []
+            for i in tqdm(range(len(lines)), file=sys.stdout):
+                parts = lines[i].strip().split(';')
+                if parts[0] == '@':
+                    db = parts[1]
+                if parts[0] == '#' or parts[0] == '@':
+                    continue
+                idx = [datasets.index(subset) for subset in datasets if db in subset]
+                if len(idx) != 1:
+                    raise ValueError('Database does not exist')
+                seq = Database.__subclasses__()[idx[0]]().load_filename(path, db, lines[i])
+                if len(seq.images) == 0:
+                    continue
+                anns.append(seq)
+        ifs.close()
+    else:
+        raise ValueError('Annotations file does not exist')
+    return anns
 
 
 class Evaluator:
