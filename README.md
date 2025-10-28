@@ -18,17 +18,10 @@ https://doi.org/10.1016/j.patcog.2024.110263
 <img src=samples/opal_panoptic.gif/>
 
 #### Requisites
-- images_framework https://github.com/pcr-upm/images_framework
+- images-framework
 - pytorch (v1.13.0)
-- sciPy
+- tqdm
 
-#### Installation
-This repository must be located inside the following directory:
-```
-images_framework
-    └── alignment
-        └── opal23_headpose
-```
 #### Usage
 ```
 usage: opal23_headpose_test.py [-h] [--input-data INPUT_DATA] [--show-viewer] [--save-image]
@@ -56,7 +49,7 @@ usage: Opal23Headpose [--rotation-mode {euler,quaternion,6d,6d_opal}]
 
 * Use the --rotation-mode option to specify the internal pose parameterization of the network.
 ```
-> python images_framework/alignment/opal23_headpose/test/opal23_headpose_test.py --input-data images_framework/alignment/opal23_headpose/test/example.tif --database 300wlp --gpu 0 --rotation-mode euler --save-image
+> python test/opal23_headpose_test.py --input-data test/example.tif --database 300wlp --gpu 0 --rotation-mode euler --save-image
 ```
 
 #### Notebooks

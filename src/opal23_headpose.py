@@ -4,6 +4,8 @@ __author__ = 'Alejandro Cobo'
 __email__ = 'alejandro.cobo@upm.es'
 
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')))
 import cv2
 import torch
 import numpy as np
