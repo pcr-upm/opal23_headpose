@@ -17,10 +17,10 @@ from scipy.spatial.transform import Rotation
 from images_framework.src.constants import Modes
 from images_framework.src.composite import Composite
 from images_framework.src.categories import Category as Oi
-from images_framework.src.annotations import GenericGroup, GenericImage, PersonObject, GenericLandmark, GenericCategory
+from images_framework.src.annotations import GenericVideo, GenericImage, PersonObject, GenericLandmark, GenericCategory
 from images_framework.src.viewer import Viewer
 from images_framework.src.utils import load_geoimage
-from images_framework.alignment.landmarks import lps
+from images_framework.regression.alignment.landmarks import lps
 from src.opal23_headpose import Opal23Headpose
 
 image_extensions = ('bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff')
@@ -51,7 +51,7 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
     Process frame and show results.
     """
     # Read annotations
-    ann, pred = GenericGroup(), GenericGroup()
+    ann, pred = GenericVideo(), GenericVideo()
     img_ann = GenericImage(filename)
     img, _ = load_geoimage(img_ann.filename)
     img_ann.tile = np.array([0, 0, img.shape[1], img.shape[0]])
@@ -88,12 +88,12 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
         composite.show(viewer, ann, pred)
         fps = 'FPS = ' + "{0:.3f}".format(cv2.getTickFrequency() / ticks)
         viewer.text(pred.images[0], fps, (20, np.shape(viewer.get_image(pred.images[0]))[0] - 20), 0.5, (0, 255, 0))
-        viewer.show(delay)
+        viewer.show(delay, as_video=False)
     if save_image:
         for img_pred in pred.images:
             viewer.set_image(img_pred)
         composite.show(viewer, ann, pred)
-        viewer.save(dirname)
+        viewer.save(dirname, as_video=False, format='tif')
         composite.save(dirname, pred)
 
 

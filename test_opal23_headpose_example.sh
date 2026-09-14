@@ -1,13 +1,12 @@
 #!/bin/bash
 echo 'Using Docker to start the container and run tests ...'
-sudo docker build --force-rm --build-arg SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" -t opal23_headpose_image .
-sudo docker volume create --name opal23_headpose_volume
-sudo docker run --name opal23_headpose_container -v opal23_headpose_volume:/home/username --rm --gpus all -it -d opal23_headpose_image bash
+sudo docker build --force-rm --ssh default=$HOME/.ssh/id_rsa -t opal23_headpose_image .
+sudo docker run --name opal23_headpose_container --rm --gpus all -it -d opal23_headpose_image bash
 sudo docker exec -w /home/username/opal23_headpose opal23_headpose_container python test/opal23_headpose_test.py --input-data test/example.tif --database 300wlp --gpu 0 --rotation-mode euler --save-image
-sudo docker stop opal23_headpose_container
 echo 'Transferring data from docker container to your local machine ...'
 mkdir -p output
-sudo chown -R "${USER}":"${USER}" /var/lib/docker/
-rsync --delete -azvv /var/lib/docker/volumes/opal23_headpose_volume/_data/conda/envs/opal23/lib/python3.10/site-packages/images_framework/output/images/ output
-sudo docker system prune --all --force --volumes
-sudo docker volume rm $(sudo docker volume ls -qf dangling=true)
+sudo docker cp opal23_headpose_container:/home/username/conda/envs/opal23/lib/python3.10/site-packages/images_framework/output/images/. output/
+sudo chown -R "${USER}":"${USER}" output
+sudo docker rm -f opal23_headpose_container
+sudo docker image rm opal23_headpose_image
+sudo docker builder prune -a -f
