@@ -30,5 +30,5 @@ ENV PATH /home/username/conda/envs/opal23/bin:/home/username/conda/bin:$PATH
 # Make RUN commands use the new environment (source activate opal23)
 SHELL ["conda", "run", "-n", "opal23", "/bin/bash", "-c"]
 # Install dependencies
-RUN pip install images-framework tqdm "numpy==1.23.5"
+RUN pip install pcr-framework tqdm "numpy==1.23.5"
 RUN pip install torch==1.13.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117

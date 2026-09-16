@@ -14,13 +14,13 @@ import numpy as np
 import importlib.util
 from pathlib import Path
 from scipy.spatial.transform import Rotation
-from images_framework.src.constants import Modes
-from images_framework.src.composite import Composite
-from images_framework.src.categories import Category as Oi
-from images_framework.src.annotations import GenericVideo, GenericImage, PersonObject, GenericLandmark, GenericCategory
-from images_framework.src.viewer import Viewer
-from images_framework.src.utils import load_geoimage
-from images_framework.regression.alignment.landmarks import lps
+from pcr_framework.src.constants import Modes
+from pcr_framework.src.composite import Composite
+from pcr_framework.src.categories import Category as Oi
+from pcr_framework.src.annotations import GenericVideo, GenericImage, PersonObject, GenericLandmark, GenericCategory
+from pcr_framework.src.viewer import Viewer
+from pcr_framework.src.utils import load_geoimage
+from pcr_framework.regression.alignment.landmarks import lps
 from src.opal23_headpose import Opal23Headpose
 
 image_extensions = ('bmp', 'jpg', 'jpeg', 'png', 'tif', 'tiff')
@@ -72,7 +72,7 @@ def process_frame(composite, filename, show_viewer, save_image, viewer, delay, d
                 obj.add_landmark(GenericLandmark(lnd['label'], lp, lnd['pos'], lnd['visible'], lnd['confidence']), lps[type(lp)])
             img_ann.add_object(obj)
     else:
-        from images_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
+        from pcr_framework.detection.ssd16_detection.src.ssd16_detection import SSD16Detection
         sd = SSD16Detection('images_framework/detection/ssd16_detection/')
         sd.parse_options(['--database', 'aflw'])
         sd.load(Modes.TEST)

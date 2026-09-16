@@ -10,8 +10,8 @@ import cv2
 import torch
 import numpy as np
 from PIL import Image
-from images_framework.src.alignment import Alignment
-from images_framework.src.constants import Modes
+from pcr_framework.src.alignment import Alignment
+from pcr_framework.src.constants import Modes
 from .irn_relu import IRN
 from .task_headpose import PoseHead
 

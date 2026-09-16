@@ -11,8 +11,8 @@ import copy
 import argparse
 import numpy as np
 from tqdm import tqdm
-from images_framework.src.constants import Modes
-from images_framework.src.composite import Composite
+from pcr_framework.src.constants import Modes
+from pcr_framework.src.composite import Composite
 from src.opal23_headpose import Opal23Headpose
 from test.evaluator import load_annotations, Evaluator
 

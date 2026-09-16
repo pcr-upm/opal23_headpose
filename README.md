@@ -18,9 +18,7 @@ https://doi.org/10.1016/j.patcog.2024.110263
 <img src=samples/opal_panoptic.gif/>
 
 #### Requisites
-- images-framework
-- pytorch (v1.13.0)
-- tqdm
+The required dependencies are installed in the [`Dockerfile`](./Dockerfile#L33-L34).
 
 #### Usage
 ```

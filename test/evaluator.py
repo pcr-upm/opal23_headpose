@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
-from images_framework.src.datasets import Database
+from pcr_framework.src.datasets import Database
 
 
 def load_annotations(anns_file):
