@@ -5,7 +5,7 @@ __email__ = 'alejandro.cobo@upm.es'
 
 import os
 import sys
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.getcwd())
 import cv2
 import json
 import copy
@@ -101,7 +101,6 @@ def main():
     """
     Opal 2023 test script.
     """
-    print('OpenCV ' + cv2.__version__)
     unknown, input_data, show_viewer, save_image = parse_options()
 
     # Determine if we get the images from a camera, video or directory

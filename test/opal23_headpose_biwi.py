@@ -5,8 +5,7 @@ __email__ = 'alejandro.cobo@upm.es'
 
 import os
 import sys
-sys.path.append(os.getcwd())
-import cv2
+sys.path.insert(0, os.getcwd())
 import copy
 import argparse
 import numpy as np
@@ -34,7 +33,6 @@ def main():
     """
     Opal 2023 using Biwi test set.
     """
-    print('OpenCV ' + cv2.__version__)
     unknown, anns_file = parse_options()
 
     # Load vision components

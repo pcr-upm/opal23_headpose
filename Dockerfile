@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # This is our first build stage, it will not persist in the final image
-FROM ubuntu as intermediate
+FROM ubuntu AS intermediate
 RUN apt-get update && apt-get install -y --no-install-recommends git openssh-client && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p -m 0700 /root/.ssh && ssh-keyscan github.com >> /root/.ssh/known_hosts
 # Download the computer vision framework
@@ -10,8 +10,7 @@ ADD data /opal23_headpose/data
 
 # Copy the repository from the previous image
 FROM nvcr.io/nvidia/cuda:11.2.2-cudnn8-devel-ubuntu20.04
-ENV LANG=C.UTF-8
-ENV TZ=Europe/Madrid
+ENV LANG=C.UTF-8 TZ=Europe/Madrid
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential wget libgl1-mesa-glx libsm6 libxext6 libglib2.0-0
 RUN mkdir -p /home/username
@@ -26,7 +25,7 @@ RUN /home/username/conda/bin/conda tos accept --override-channels --channel http
     /home/username/conda/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 RUN /home/username/conda/bin/conda create --name opal23 python=3.10
 # Activate conda environment
-ENV PATH /home/username/conda/envs/opal23/bin:/home/username/conda/bin:$PATH
+ENV PATH=/home/username/conda/envs/opal23/bin:/home/username/conda/bin:${PATH}
 # Make RUN commands use the new environment (source activate opal23)
 SHELL ["conda", "run", "-n", "opal23", "/bin/bash", "-c"]
 # Install dependencies
