@@ -130,18 +130,19 @@ class Opal23Headpose(Alignment):
 
     def process(self, ann, pred):
         from scipy.spatial.transform import Rotation
+        from pcr_framework.src.annotations import PersonObject
         for img_pred in pred.images:
             # Load image
             image = cv2.imread(img_pred.filename)
             for obj_pred in img_pred.objects:
+                if not isinstance(obj_pred, PersonObject):
+                    continue
                 # Generate prediction
                 warped_image = self.preprocess(image, obj_pred.bb)
-
                 # Image array (H x W x C) to tensor (1 x C x H x W)
                 tensor_image = torch.tensor(warped_image, dtype=torch.float)
                 tensor_image = tensor_image.permute(2, 0, 1) / 255
                 tensor_image = tensor_image.unsqueeze(0).to(self.device)
-
                 with torch.set_grad_enabled(self.model.training):
                     out = self.model(tensor_image)[0].detach().cpu().numpy()
                     if self.rotation_mode == 'euler':
